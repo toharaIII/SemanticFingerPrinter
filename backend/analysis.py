@@ -1,7 +1,16 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_distances, cosine_similarity
 
+def compute_pairwise_similarities(embeddings: np.array) -> list:
+    embeddings_array = np.array(embeddings)
+    similaries = cosine_similarity(embeddings_array)
+    return similaries.tolist()
+
 def compute_centroid(embeddings: np.array) -> np.ndarray:
+    if embeddings.size == 0:
+        raise ValueError("No embeddings provided — cannot compute centroid.")
+    elif len(embeddings.shape) == 1:
+        embeddings = np.expand_dims(embeddings, axis=0)
     return np.mean(embeddings, axis=0)
 
 def find_closest_to_centroid(embeddings: np.ndarray, centroid: np.ndarray) -> int:
