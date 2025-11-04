@@ -1,6 +1,6 @@
 import random
 
-def call_orchestrator(prompt: str, mode: str, document=None) -> str:
+def call_orchestrator(prompt: str, plan: str, document=None) -> str:
     """
     Mocked call to orchestrator. In production, replace this
     with an HTTP POST to your real orchestrator endpoint.
@@ -12,4 +12,5 @@ def call_orchestrator(prompt: str, mode: str, document=None) -> str:
         "considering relevant factors.",
         "based on extracted key details.",
     ]
-    return f"[{mode.upper()}] {prompt.strip()} {random.choice(endings)}"
+    #[{plan.upper()}]
+    return f"{prompt.strip()} {random.choice(endings)}"
