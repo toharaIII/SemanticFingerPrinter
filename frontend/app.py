@@ -2,8 +2,15 @@ import streamlit as st
 import requests
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
+from streamlit_plotly_events import plotly_events
 
 API_URL = "http://localhost:8000/analyze_prompt"
+
+if "result" not in st.session_state:
+    st.session_state["result"] = None
+if "analysis_done" not in st.session_state:
+    st.session_state["analysis_done"] = False
 
 st.set_page_config(page_title="Semantic FingerPrinter", layout="wide")
 
@@ -42,42 +49,62 @@ if submit:
                 st.error(f"API ERROR: {response.status_code} - {response.text}")
             else:
                 result = response.json()
-                st.success("Analysis Complete!")
+                st.session_state["result"] = result
+                st.session_state["analysis_done"] = True
 
-                st.subheader("Variance")
-                st.write(f"**Variance:** {result['variance']:.4f}")
+if st.session_state.get("analysis_done"):
+    result = st.session_state["result"]
+    st.success("Analysis Complete!")
 
-                st.subheader("Closest to Average Output")
-                st.info(result["average_output"])
+    st.subheader("Variance")
+    st.write(f"**Variance:** {result['variance']:.4f}")
 
-                st.subheader("🔗 Pairwise Similarities Heatmap")
-                sim_matrix = np.array(result["pairwise_similarities"])
-                fig = px.imshow(
-                    sim_matrix,
-                    text_auto=False,
-                    color_continuous_scale="Viridis",
-                    title="Pairwise Cosine Similarities",
-                    labels=dict(x="Output ID", y="Output ID", color="Similarity")
-                )
-                st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Closest to Average Output")
+    st.info(result["average_output"])
 
-                st.subheader("Explore Outputs")
-                avg_sim = np.mean(sim_matrix, axis=1)
-                points = [{"id": i, "avg_similarity": avg_sim[i]} for i in range(len(avg_sim))]
+    st.subheader("Explore Outputs")
+    avg_sim = np.mean(sim_matrix, axis=1)
 
-                fig2 = px.scatter(
-                    points,
-                    x="id",
-                    y="avg_similarity",
-                    title="Average Similarity of Each Output",
-                    hover_data=["id"]
-                )
-                st.plotly_chart(fig2, use_container_width=True)
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(
+        x=list(range(len(avg_sim))),
+        y=avg_sim.tolist(),
+        mode='markers',
+        marker=dict(size=10),
+        hovertemplate='Output ID: %{x}<br>Avg Similarity: %{y:.4f}<extra></extra>'
+    ))
 
-                st.markdown("Output Texts")
-                selected_id = st.number_input(
-                    "Select an Output ID to view:", min_value=0, max_value=len(result["outputs"]) - 1, value=0
-                )
-                selected_output = result["outputs"][selected_id]["text"]
-                st.text_area(f"Output {selected_id}", value=selected_output, height=200)
+    fig2.update_layout(
+        title="Average Similarity of Each Output",
+        xaxis_title="Output ID",
+        yaxis_title="Average Similarity",
+        hovermode='closest'
+    )
 
+    st.markdown("**Click on a point to view that output below:**")
+
+    selected_points = plotly_events(
+        fig2,
+        click_event=True,
+        hover_event=False,
+        select_event=False,
+        key="scatter_click"
+    )
+
+    if selected_points:
+        clicked_id = int(selected_points[0]["x"])
+
+        clicked_output = result["outputs"][clicked_id]["text"]
+        st.markdown(f"Output {clicked_id} (Selected)")
+        st.text_area(f"Output {clicked_id}", value=clicked_output, height=200, key=f"output_{clicked_id}")
+
+    else:
+        st.markdown("Output Texts")
+        selected_id = st.number_input(
+            "Or select manually:",
+            min_value=0,
+            max_value=len(result["outputs"]) - 1,
+            value=0
+        )
+        selected_output = result["outputs"][selected_id]["text"]
+        st.text_area(f"Output {selected_id}", value=selected_output, height=200, key=f"manual_output_{selected_id}")
