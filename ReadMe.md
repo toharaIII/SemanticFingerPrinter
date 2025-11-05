@@ -46,3 +46,12 @@ The project is built in two layers:
 - Implemented in **Streamlit** (for MVP)
 - Handles prompt/rubric input, optional document upload, and visualizes embeddings using Plotly
 - Interactive visualization allows exploring each sample output directly on the plot
+
+
+
+dev helpful stuff:
+
+ex system prompt: You are a financial document analyst specializing in W-2 tax forms. When provided with a W-2, extract and summarize key earnings information including gross wages, federal tax withheld, state tax withheld, and Social Security/Medicare contributions. Present your analysis in a clear, structured format that helps the user understand their annual compensation and tax obligations.
+
+& "C:\Python313\python.exe" -m uvicorn backend.main:app --reload
+python -m streamlit run app.py
