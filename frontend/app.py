@@ -62,9 +62,13 @@ if st.session_state.get("analysis_done"):
     st.subheader("Closest to Average Output")
     st.info(result["average_output"])
 
+    # Define sim_matrix early since it's used in multiple places
+    sim_matrix = np.array(result["pairwise_similarities"])
+
     st.subheader("Explore Outputs")
     avg_sim = np.mean(sim_matrix, axis=1)
-
+    
+    # Create figure using graph_objects
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(
         x=list(range(len(avg_sim))),
@@ -73,16 +77,17 @@ if st.session_state.get("analysis_done"):
         marker=dict(size=10),
         hovertemplate='Output ID: %{x}<br>Avg Similarity: %{y:.4f}<extra></extra>'
     ))
-
+    
     fig2.update_layout(
         title="Average Similarity of Each Output",
         xaxis_title="Output ID",
         yaxis_title="Average Similarity",
         hovermode='closest'
     )
-
+    
     st.markdown("**Click on a point to view that output below:**")
-
+    
+    # --- Handle interactive selection ---
     selected_points = plotly_events(
         fig2,
         click_event=True,
@@ -90,14 +95,16 @@ if st.session_state.get("analysis_done"):
         select_event=False,
         key="scatter_click"
     )
-
+    
+    # If a point was clicked, show the selected output
     if selected_points:
         clicked_id = int(selected_points[0]["x"])
-
+        
+        # Show output text
         clicked_output = result["outputs"][clicked_id]["text"]
         st.markdown(f"Output {clicked_id} (Selected)")
         st.text_area(f"Output {clicked_id}", value=clicked_output, height=200, key=f"output_{clicked_id}")
-
+    
     else:
         st.markdown("Output Texts")
         selected_id = st.number_input(
@@ -108,3 +115,13 @@ if st.session_state.get("analysis_done"):
         )
         selected_output = result["outputs"][selected_id]["text"]
         st.text_area(f"Output {selected_id}", value=selected_output, height=200, key=f"manual_output_{selected_id}")
+
+    st.subheader("Pairwise Similarities Heatmap")
+    fig = px.imshow(
+        sim_matrix,
+        text_auto=False,
+        color_continuous_scale="Viridis",
+        title="Pairwise Cosine Similarities",
+        labels=dict(x="Output ID", y="Output ID", color="Similarity")
+    )
+    st.plotly_chart(fig, use_container_width=True)
