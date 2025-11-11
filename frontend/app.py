@@ -56,33 +56,144 @@ if st.session_state.get("analysis_done"):
     result = st.session_state["result"]
     st.success("Analysis Complete!")
 
-    st.subheader("Variance")
+    st.subheader("Variance Between Individual Outputs")
     st.write(f"**Variance:** {result['variance']:.4f}")
 
     st.subheader("Closest to Average Output")
     st.info(result["average_output"])
 
-    # Define sim_matrix early since it's used in multiple places
     sim_matrix = np.array(result["pairwise_similarities"])
 
     st.subheader("Explore Outputs")
-    avg_sim = np.mean(sim_matrix, axis=1)
+    centroid_sim = np.array(result["centroid_similarities"])
     
-    # Create figure using graph_objects
+    # Calculate statistics for overlays
+    median_sim = np.median(centroid_sim)
+    mean_sim = np.mean(centroid_sim)
+    q1_sim = np.percentile(centroid_sim, 25)
+    q3_sim = np.percentile(centroid_sim, 75)
+    
+    # Create beeswarm effect by adding small random jitter to x-coordinates
+    np.random.seed(42)  # For reproducibility
+    jitter_amount = 0.02
+    x_jittered = np.random.uniform(-jitter_amount, jitter_amount, len(centroid_sim))
+    
+    # Debug output
+    st.write(f"Debug - Number of points: {len(centroid_sim)}, Values: {centroid_sim}")
+    
+    # Create figure with beeswarm plot
     fig2 = go.Figure()
+    
+    # Add the beeswarm points
     fig2.add_trace(go.Scatter(
-        x=list(range(len(avg_sim))),
-        y=avg_sim.tolist(),
+        x=x_jittered,
+        y=centroid_sim.tolist(),
         mode='markers',
-        marker=dict(size=10),
-        hovertemplate='Output ID: %{x}<br>Avg Similarity: %{y:.4f}<extra></extra>'
+        marker=dict(
+            size=12,
+            color='#636EFA',
+            opacity=0.7,
+            line=dict(width=1, color='white')
+        ),
+        customdata=list(range(len(centroid_sim))),
+        hovertemplate='Output ID: %{customdata}<br>Similarity to Centroid: %{y:.4f}<extra></extra>',
+        name='Outputs',
+        showlegend=False
+    ))
+
+        # Add median line
+    fig2.add_shape(
+        type="line",
+        x0=-0.5, x1=0.5,
+        y0=median_sim, y1=median_sim,
+        line=dict(color="red", width=2, dash="solid"),
+    )
+    fig2.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='red', width=2),
+        name=f'Median: {median_sim:.4f}',
+        showlegend=True
     ))
     
+    # Add mean line
+    fig2.add_shape(
+        type="line",
+        x0=-0.5, x1=0.5,
+        y0=mean_sim, y1=mean_sim,
+        line=dict(color="orange", width=2, dash="dash"),
+    )
+    fig2.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='orange', width=2, dash='dash'),
+        name=f'Mean: {mean_sim:.4f}',
+        showlegend=True
+    ))
+    
+    # Add Q1 line
+    fig2.add_shape(
+        type="line",
+        x0=-0.5, x1=0.5,
+        y0=q1_sim, y1=q1_sim,
+        line=dict(color="gray", width=1.5, dash="dot"),
+    )
+    fig2.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='gray', width=1.5, dash='dot'),
+        name=f'Q1: {q1_sim:.4f}',
+        showlegend=True
+    ))
+    
+    # Add Q3 line
+    fig2.add_shape(
+        type="line",
+        x0=-0.5, x1=0.5,
+        y0=q3_sim, y1=q3_sim,
+        line=dict(color="gray", width=1.5, dash="dot"),
+    )
+    fig2.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='gray', width=1.5, dash='dot'),
+        name=f'Q3: {q3_sim:.4f}',
+        showlegend=True
+    ))
+    
+    # Add subtle IQR box
+    fig2.add_shape(
+        type="rect",
+        x0=-0.5, x1=0.5,
+        y0=q1_sim, y1=q3_sim,
+        fillcolor="lightgray",
+        opacity=0.15,
+        line=dict(width=0),
+        layer="below"
+    )
+
+
     fig2.update_layout(
-        title="Average Similarity of Each Output",
-        xaxis_title="Output ID",
-        yaxis_title="Average Similarity",
-        hovermode='closest'
+        title="Similarity to Centroid Distribution",
+        xaxis_title="",
+        yaxis_title="Cosine Similarity to Centroid",
+        #hovermode='closest',
+        xaxis=dict(
+            showgrid=False,
+            showticklabels=False,
+            range=[-0.1, 0.1]
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor='lightgray'
+        ),
+        height=500,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="right",
+            x=0.99
+        )
     )
     
     st.markdown("**Click on a point to view that output below:**")
@@ -96,9 +207,13 @@ if st.session_state.get("analysis_done"):
         key="scatter_click"
     )
     
+    st.write(fig2.data)
+
+
     # If a point was clicked, show the selected output
     if selected_points:
-        clicked_id = int(selected_points[0]["x"])
+        # Get the customdata (Output ID) from the clicked point
+        clicked_id = int(selected_points[0]["pointIndex"])
         
         # Show output text
         clicked_output = result["outputs"][clicked_id]["text"]

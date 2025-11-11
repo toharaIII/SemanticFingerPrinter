@@ -5,7 +5,8 @@ from backend.analysis import (
     compute_centroid, 
     find_closest_to_centroid, 
     compute_variance,
-    compute_pairwise_similarities
+    compute_pairwise_similarities,
+    compute_centroid_similarities
 )
 from typing import Optional, Union
 from pydantic import BaseModel
@@ -37,6 +38,7 @@ async def analyze_prompt(request: AnalyzePromptRequest):
 
     similarities = compute_pairwise_similarities(embeddings)
     centroid = compute_centroid(embeddings)
+    centroid_similarities = compute_centroid_similarities(embeddings, centroid)
     variance = compute_variance(embeddings, centroid)
     avg_vec =  find_closest_to_centroid(embeddings, centroid)
     avg_output = output[avg_vec]
@@ -45,6 +47,7 @@ async def analyze_prompt(request: AnalyzePromptRequest):
         "average_output": avg_output,
         "outputs": [{"id": i, "text": t} for i, t in enumerate(output)],
         "pairwise_similarities": similarities,
+        "centroid_similarities": centroid_similarities,
         "variance": variance
     }
 

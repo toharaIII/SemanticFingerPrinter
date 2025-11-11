@@ -13,6 +13,11 @@ def compute_centroid(embeddings: np.array) -> np.ndarray:
         embeddings = np.expand_dims(embeddings, axis=0)
     return np.mean(embeddings, axis=0)
 
+def compute_centroid_similarities(embeddings: np.ndarray, centroid: np.ndarray) -> list:
+    centroid_reshaped = centroid.reshape(1, -1)
+    similarities = cosine_similarity(embeddings, centroid_reshaped)
+    return similarities.flatten().tolist()
+
 def find_closest_to_centroid(embeddings: np.ndarray, centroid: np.ndarray) -> int:
     distances = cosine_distances(embeddings, [centroid]).flatten()
     return int(np.argmin(distances))
