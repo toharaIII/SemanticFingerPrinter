@@ -199,21 +199,20 @@ if st.session_state.get("analysis_done"):
     st.markdown("**Click on a point to view that output below:**")
     
     # --- Handle interactive selection ---
-    selected_points = plotly_events(
-        fig2,
-        click_event=True,
-        hover_event=False,
-        select_event=False,
-        key="scatter_click"
+    selected_points = st.plotly_chart(
+    fig2,
+    use_container_width=True,
+    on_select="rerun",
+    selection_mode="points",
+    key="scatter_click"
     )
     
-    st.write(fig2.data)
+    st.write("Selected points:", selected_points)
 
 
     # If a point was clicked, show the selected output
-    if selected_points:
-        # Get the customdata (Output ID) from the clicked point
-        clicked_id = int(selected_points[0]["pointIndex"])
+    if selected_points and selected_points.get("selection") and selected_points["selection"].get("points"):
+        clicked_id = selected_points["selection"]["points"][0]["point_index"]
         
         # Show output text
         clicked_output = result["outputs"][clicked_id]["text"]
