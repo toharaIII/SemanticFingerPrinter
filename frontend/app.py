@@ -78,9 +78,6 @@ if st.session_state.get("analysis_done"):
     jitter_amount = 0.02
     x_jittered = np.random.uniform(-jitter_amount, jitter_amount, len(centroid_sim))
     
-    # Debug output
-    st.write(f"Debug - Number of points: {len(centroid_sim)}, Values: {centroid_sim}")
-    
     # Create figure with beeswarm plot
     fig2 = go.Figure()
     
@@ -206,9 +203,6 @@ if st.session_state.get("analysis_done"):
     selection_mode="points",
     key="scatter_click"
     )
-    
-    st.write("Selected points:", selected_points)
-
 
     # If a point was clicked, show the selected output
     if selected_points and selected_points.get("selection") and selected_points["selection"].get("points"):
