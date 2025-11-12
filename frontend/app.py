@@ -1,9 +1,11 @@
 import streamlit as st
 import requests
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_plotly_events import plotly_events
+from components.plot_component import beeswarm_positions
 
 API_URL = "http://localhost:8000/analyze_prompt"
 
@@ -72,18 +74,18 @@ if st.session_state.get("analysis_done"):
     mean_sim = np.mean(centroid_sim)
     q1_sim = np.percentile(centroid_sim, 25)
     q3_sim = np.percentile(centroid_sim, 75)
-    
-    # Create beeswarm effect by adding small random jitter to x-coordinates
+
+    #Create beeswarm effect by adding small random jitter to x-coordinates
     np.random.seed(42)  # For reproducibility
     jitter_amount = 0.02
-    x_jittered = np.random.uniform(-jitter_amount, jitter_amount, len(centroid_sim))
+    x_beeswarm = beeswarm_positions(centroid_sim)
     
     # Create figure with beeswarm plot
     fig2 = go.Figure()
     
     # Add the beeswarm points
     fig2.add_trace(go.Scatter(
-        x=x_jittered,
+        x=x_beeswarm,
         y=centroid_sim.tolist(),
         mode='markers',
         marker=dict(
