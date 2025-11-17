@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_plotly_events import plotly_events
-from components.plot_component import beeswarm_positions
+from plot_component import beeswarm_positions
 
 API_URL = "http://localhost:8000/analyze_prompt"
 
@@ -25,26 +25,50 @@ outputs (n) to generate.
 
 with st.sidebar:
     st.header("Input Parameters")
-    prompt = st.text_area("System Prompt", height=150, placeholder="Enter the System Prompt here...")
-    #not MVP #plan = st.text_area("Plan", height=150, placeholder="Enter Plan Name here...")
+    userPrompt = st.text_area("User Prompt", height=150, placeholder="Enter the User Prompt here...")
+    systemPrompt = st.text_area("System Prompt", height=300, placeholder="Enter the System Prompt here...")
+    plan = st.text_input("Plan", "Enter Plan Name here...")
     n = st.number_input("Number of Outputs (n)", min_value = 2, max_value = 1000, value = 10)
-    #not MVP #uploaded_doc = st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
+    uploaded_doc = st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
+    
+    temperature_input = st.text_input("Temperature (0.0-2.0)", "Optional")
+    topP_input = st.text_input("Top-P (0.0-1.0)", "Optional")
+    topK_input = st.text_input("Top-K", "Optional")
+    maxTokens_input = st.text_input("Max Tokens", "Optional")
+
+    temperature = float(temperature_input) if temperature_input.strip() != "" else None
+    topP = float(topP_input) if topP_input.strip() != "" else None
+    topK = int(topK_input) if topK_input.strip() != "" else None
+    maxTokens = int(maxTokens_input) if maxTokens_input.strip() != "" else None
+
+    stopSequencesInput = st.text_area("Stop sequences (comma-separated)", placeholder="e.g. ###, END")
+    stopSequences = [s.strip() for s in stopSequencesInput.split(",")] if stopSequencesInput else None
+    mcpServer = st.text_input("MCP Server URL (optional)")
     submit = st.button("Run Analysis")
 
 if submit:
-    if not prompt:
+    if not userPrompt and systemPrompt:
         st.warning("Please enter a prompt before running the analysis.")
     else:
         with st.spinner("Analyzing outputs... this may take a few moments"):
-            #files = None
-            #if uploaded_doc is not None:
-            #    files = {"document": uploaded_doc.getvalue()}
+            files = None
+            if uploaded_doc is not None:
+                files = {"document": uploaded_doc.getvalue()}
 
             payload = {
-                "prompt": prompt,
-                "n": n
+                "userPrompt": userPrompt,
+                "systemPrompt": systemPrompt,
+                "plan": plan,
+                "n": n,
+                "temperature": temperature,
+                "topP": topP,
+                "topK": topK,
+                "maxTokens": maxTokens,
+                "stopSequences": stopSequences,
+                "mcpServer": mcpServer
             }
 
+            payload = {k: v for k, v in payload.items() if v is not None}
             response = requests.post(API_URL, json=payload)
 
             if response.status_code != 200:

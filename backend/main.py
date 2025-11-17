@@ -15,24 +15,43 @@ import numpy as np
 app = FastAPI(title="Semantic FingerPrinter API", version = "0.1")
 
 class AnalyzePromptRequest(BaseModel):
-    prompt: str
+    userPrompt: str
+    systemPrompt: str
     plan: Optional[str] = None
     n: int = 10
-    document: Optional[str] = None
+    document: Optional[UploadFile] = None
+    temperature: Optional[float] = None
+    topP: Optional[float] = None
+    topK: Optional[int] = None
+    maxTokens: Optional[int] = None
+    stopSequences: Optional[Union[str,list[str]]] = None
+    mcpServer: Optional[str] = None
+
 
 @app.post("/analyze_prompt")
 async def analyze_prompt(request: AnalyzePromptRequest):
-    prompt = request.prompt
+    userPrompt = request.userPrompt
+    systemPrompt = request.systemPrompt
     plan = request.plan
     n = request.n
     document = request.document
+    temp = request.temperature
+    topP = request.topP
+    topK = request.topK
+    maxTokens = request.maxTokens
+    stopSequences = request.stopSequences
+    mcp = request.mcpServer
 
     doc_content = None
     if document is not None:
         if isinstance(document, UploadFile):
             doc_content = await document.read()
 
-    output = [call_orchestrator(prompt, plan, doc_content) for _ in range(n)]
+    try:
+        output = [call_orchestrator(userPrompt,systemPrompt,plan,doc_content,temp,topP,topK,maxTokens,stopSequences,mcp) for _ in range(n)]
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    
     embeddings = embed_texts(output)
     embeddings = np.array(embeddings)
 
