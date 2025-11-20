@@ -22,6 +22,7 @@ async def analyze_prompt(request: AnalyzePromptRequest):
     if document is not None:
         if isinstance(document, UploadFile):
             doc_content = await document.read()
+            #IS THIS ALSO THE CORRECT DATATYPE? IM NOT SURE
             request.document = doc_content
 
     try:
