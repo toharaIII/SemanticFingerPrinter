@@ -1,30 +1,28 @@
 import requests
 from fastapi import UploadFile
+from backend.objects import AnalyzePromptRequest
 
-def call_orchestrator(userPrompt: str, systemPrompt: str, plan: str = None,
-                      n: int = 10, document: UploadFile = None, temperature: float = None,
-                      topP: float = None, topK: int = None, maxTokens: int = None,
-                      stopSequences: str | list[str] = None, mcpServer: str = None) -> str:
+def call_orchestrator(request: AnalyzePromptRequest) -> str:
     
     orchURL = "orchestrator.com/replaceWithYourURL"
 
     payload = {
-        "userPrompt": userPrompt,
-        "systemPrompt": systemPrompt,
-        "plan": plan,
-        "temperature": temperature,
-        "topP": topP,
-        "topK": topK,
-        "maxTokens": maxTokens,
-        "stopSequences": stopSequences,
-        "mcpServer": mcpServer
+        "userPrompt": request.userPrompt,
+        "systemPrompt": request.systemPrompt,
+        "plan": request.plan,
+        "temperature": request.temperature,
+        "topP": request.topP,
+        "topK": request.topK,
+        "maxTokens": request.maxTokens,
+        "stopSequences": request.stopSequences,
+        "mcpServer": request.mcpServer
     }
 
     payload = {k: v for k, v in payload.items() if v is not None}
     
     try:
-        if document:
-            files = {"document": (document.filename, document.file, document.content_type)}
+        if request.document:
+            files = {"document": (request.document.filename, request.document.file, request.document.content_type)}
             response = requests.post(orchURL, data=payload, files=files)
         else:
             response = requests.post(orchURL, json=payload)

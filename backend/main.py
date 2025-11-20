@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile
 from backend.orchestrator import call_orchestrator
 from backend.embeddings import embed_texts
 from backend.analysis import (
@@ -8,47 +8,24 @@ from backend.analysis import (
     compute_pairwise_similarities,
     compute_centroid_similarities
 )
-from typing import Optional, Union
-from pydantic import BaseModel
+from backend.objects import AnalyzePromptRequest
 import numpy as np
 
-app = FastAPI(title="Semantic FingerPrinter API", version = "0.1")
-
-class AnalyzePromptRequest(BaseModel):
-    userPrompt: str
-    systemPrompt: str
-    plan: Optional[str] = None
-    n: int = 10
-    document: Optional[UploadFile] = None
-    temperature: Optional[float] = None
-    topP: Optional[float] = None
-    topK: Optional[int] = None
-    maxTokens: Optional[int] = None
-    stopSequences: Optional[Union[str,list[str]]] = None
-    mcpServer: Optional[str] = None
-
+app = FastAPI(title="Prompt Variance Analyzer", version = "0.1")
 
 @app.post("/analyze_prompt")
 async def analyze_prompt(request: AnalyzePromptRequest):
-    userPrompt = request.userPrompt
-    systemPrompt = request.systemPrompt
-    plan = request.plan
     n = request.n
     document = request.document
-    temp = request.temperature
-    topP = request.topP
-    topK = request.topK
-    maxTokens = request.maxTokens
-    stopSequences = request.stopSequences
-    mcp = request.mcpServer
 
     doc_content = None
     if document is not None:
         if isinstance(document, UploadFile):
             doc_content = await document.read()
+            request.document = doc_content
 
     try:
-        output = [call_orchestrator(userPrompt,systemPrompt,plan,doc_content,temp,topP,topK,maxTokens,stopSequences,mcp) for _ in range(n)]
+        output = [call_orchestrator(request) for _ in range(n)]
     except Exception as e:
         return {"success": False, "error": str(e)}
     
