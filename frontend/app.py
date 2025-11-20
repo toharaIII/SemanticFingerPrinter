@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_plotly_events import plotly_events
 from plot_component import beeswarm_positions
+from objects import AnalyzePromptRequest
 
 API_URL = "http://localhost:8000/analyze_prompt"
 
@@ -25,47 +26,63 @@ outputs (n) to generate.
 
 with st.sidebar:
     st.header("Input Parameters")
-    userPrompt = st.text_area("User Prompt", height=150, placeholder="Enter the User Prompt here...")
-    systemPrompt = st.text_area("System Prompt", height=300, placeholder="Enter the System Prompt here...")
-    plan = st.text_input("Plan", "Enter Plan Name here...")
-    n = st.number_input("Number of Outputs (n)", min_value = 2, max_value = 1000, value = 10)
-    uploaded_doc = st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
+    request = AnalyzePromptRequest
+    request.userPrompt = st.text_area("User Prompt", height=150, placeholder="Enter the User Prompt here...")
+    request.systemPrompt = st.text_area("System Prompt", height=300, placeholder="Enter the System Prompt here...")
+    request.plan = st.text_input("Plan", "Enter Plan Name here...")
+    request.n = st.number_input("Number of Outputs (n)", min_value = 2, max_value = 1000, value = 10)
+
+
+
+
+
+
+
+    #FOR THIS SEE THE OBJECTS FILE, NEED TO LOOK INTO PROPER DATATYPE
+    request.document = st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
     
+
+
+
+
+
+
+
     temperature_input = st.text_input("Temperature (0.0-2.0)", "Optional")
     topP_input = st.text_input("Top-P (0.0-1.0)", "Optional")
     topK_input = st.text_input("Top-K", "Optional")
     maxTokens_input = st.text_input("Max Tokens", "Optional")
-
-    temperature = float(temperature_input) if temperature_input.strip() != "" else None
-    topP = float(topP_input) if topP_input.strip() != "" else None
-    topK = int(topK_input) if topK_input.strip() != "" else None
-    maxTokens = int(maxTokens_input) if maxTokens_input.strip() != "" else None
-
     stopSequencesInput = st.text_area("Stop sequences (comma-separated)", placeholder="e.g. ###, END")
-    stopSequences = [s.strip() for s in stopSequencesInput.split(",")] if stopSequencesInput else None
-    mcpServer = st.text_input("MCP Server URL (optional)")
+    request.mcpServer = st.text_input("MCP Server URL (optional)")
+
+    request.temperature = float(temperature_input) if temperature_input.strip() != "" else None
+    request.topP = float(topP_input) if topP_input.strip() != "" else None
+    request.topK = int(topK_input) if topK_input.strip() != "" else None
+    request.maxTokens = int(maxTokens_input) if maxTokens_input.strip() != "" else None
+
+    request.stopSequences = [s.strip() for s in stopSequencesInput.split(",")] if stopSequencesInput else None
     submit = st.button("Run Analysis")
 
 if submit:
-    if not userPrompt and systemPrompt:
+    if not request.userPrompt and request.systemPrompt:
         st.warning("Please enter a prompt before running the analysis.")
     else:
         with st.spinner("Analyzing outputs... this may take a few moments"):
             files = None
-            if uploaded_doc is not None:
-                files = {"document": uploaded_doc.getvalue()}
+            if request.document is not None:
+                files = {"document": request.document.getvalue()}
 
             payload = {
-                "userPrompt": userPrompt,
-                "systemPrompt": systemPrompt,
-                "plan": plan,
-                "n": n,
-                "temperature": temperature,
-                "topP": topP,
-                "topK": topK,
-                "maxTokens": maxTokens,
-                "stopSequences": stopSequences,
-                "mcpServer": mcpServer
+                "userPrompt": request.userPrompt,
+                "systemPrompt": request.systemPrompt,
+                "plan": request.plan,
+                "n": request.n,
+                "temperature": request.temperature,
+                "topP": request.topP,
+                "topK": request.topK,
+                "maxTokens": request.maxTokens,
+                "stopSequences": request.stopSequences,
+                "mcpServer": request.mcpServer
             }
 
             payload = {k: v for k, v in payload.items() if v is not None}
