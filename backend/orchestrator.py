@@ -1,5 +1,4 @@
 import requests
-from fastapi import UploadFile
 from backend.objects import AnalyzePromptRequest
 
 def call_orchestrator(request: AnalyzePromptRequest) -> str:

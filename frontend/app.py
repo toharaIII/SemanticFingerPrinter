@@ -55,10 +55,10 @@ with st.sidebar:
     stopSequencesInput = st.text_area("Stop sequences (comma-separated)", placeholder="e.g. ###, END")
     request.mcpServer = st.text_input("MCP Server URL (optional)")
 
-    request.temperature = float(temperature_input) if temperature_input.strip() != "" else None
-    request.topP = float(topP_input) if topP_input.strip() != "" else None
-    request.topK = int(topK_input) if topK_input.strip() != "" else None
-    request.maxTokens = int(maxTokens_input) if maxTokens_input.strip() != "" else None
+    request.temperature = float(temperature_input) if temperature_input.strip() != "Optional" else None
+    request.topP = float(topP_input) if topP_input.strip() != "Optional" else None
+    request.topK = int(topK_input) if topK_input.strip() != "Optional" else None
+    request.maxTokens = int(maxTokens_input) if maxTokens_input.strip() != "Optional" else None
 
     request.stopSequences = [s.strip() for s in stopSequencesInput.split(",")] if stopSequencesInput else None
     submit = st.button("Run Analysis")
@@ -86,7 +86,13 @@ if submit:
             }
 
             payload = {k: v for k, v in payload.items() if v is not None}
-            response = requests.post(API_URL, json=payload)
+            if request.document is not None:
+                files = {"docuement": (request.document.name,
+                                       request.document.getvalue(), 
+                                       request.document.type)}
+                response = requests.post(API_URL, json=payload, files=files)
+            else:
+                response = requests.post(API_URL, json=payload)
 
             if response.status_code != 200:
                 st.error(f"API ERROR: {response.status_code} - {response.text}")

@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, File, Form
+from typing import Optional
 from backend.orchestrator import call_orchestrator
 from backend.embeddings import embed_texts
 from backend.analysis import (
@@ -10,23 +11,46 @@ from backend.analysis import (
 )
 from backend.objects import AnalyzePromptRequest
 import numpy as np
+import json
 
 app = FastAPI(title="Prompt Variance Analyzer", version = "0.1")
 
 @app.post("/analyze_prompt")
-async def analyze_prompt(request: AnalyzePromptRequest):
-    n = request.n
-    document = request.document
+async def analyze_prompt( userPrompt: str = Form(...),
+    systemPrompt: str = Form(...),
+    plan: Optional[str] = Form(None),
+    n: int = Form(10),
+    temperature: Optional[float] = Form(None),
+    topP: Optional[float] = Form(None),
+    topK: Optional[int] = Form(None),
+    maxTokens: Optional[int] = Form(None),
+    stopSequences: Optional[str] = Form(None),
+    mcpServer: Optional[str] = Form(None),
+    document: Optional[UploadFile] = File(None)):
+    stop_seqs = json.loads(stopSequences) if stopSequences else None
+
+    request = AnalyzePromptRequest(
+        userPrompt=userPrompt,
+        systemPrompt=systemPrompt,
+        plan=plan,
+        n=n,
+        temperature=temperature,
+        topP=topP,
+        topK=topK,
+        maxTokens=maxTokens,
+        stopSequences=stop_seqs,
+        mcpServer=mcpServer,
+        document=document
+    )
 
     doc_content = None
     if document is not None:
         if isinstance(document, UploadFile):
             doc_content = await document.read()
-            #IS THIS ALSO THE CORRECT DATATYPE? IM NOT SURE
             request.document = doc_content
 
     try:
-        output = [call_orchestrator(request) for _ in range(n)]
+        output = [call_orchestrator(request) for _ in range(request.n)]
     except Exception as e:
         return {"success": False, "error": str(e)}
     

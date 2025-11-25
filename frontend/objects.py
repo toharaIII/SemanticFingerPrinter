@@ -7,9 +7,6 @@ class AnalyzePromptRequest(BaseModel):
     systemPrompt: str
     plan: Optional[str] = None
     n: int = 10
-    #FOR FRONTEND IM NOT SURE THAT THIS IS THE CORRECT
-    #DATATYPE FOR THE DOCUMENT, NEED TO LOOK INTO
-    #WHAT STREAMLIT USES TO COLLECT DOCS
     document: Optional[UploadFile] = None
     temperature: Optional[float] = None
     topP: Optional[float] = None
