@@ -1,5 +1,135 @@
 import random
 
+import random
+
+def generate_mock_tax_analysis():
+    """
+    Generates a pseudo-random mock response for a tax analysis agent.
+    Returns a structured 3-paragraph response with Summary, Key Payments, and Additional Information.
+    Maintains consistent factual data while varying presentation and word choice.
+    """
+    
+    # Fixed factual data (consistent across all responses)
+    TAX_YEAR = "2024"
+    ENTITY_TYPE = "individual taxpayer"
+    FILING_STATUS = "married filing jointly"
+    INCOME_RANGE = "$142,000"
+    TAX_BRACKET = "22%"
+    PAYMENT_AMOUNT = "$12,450"
+    PAYMENT_DATE = "April 15th"
+    PENALTY_AMOUNT = "$485"
+    CREDIT_TYPE = "Child Tax Credit"
+    DEDUCTION_TYPE = "mortgage interest deduction"
+    
+    # Varying presentation styles for the same information
+    summary_intros = [
+        "The tax analysis for",
+        "Based on the review of",
+        "After analyzing",
+        "The assessment for"
+    ]
+    
+    summary_indicators = [
+        "indicates that",
+        "shows that",
+        "reveals that",
+        "demonstrates that"
+    ]
+    
+    summary_bracket_phrases = [
+        f"falls within the {TAX_BRACKET} federal tax bracket",
+        f"is subject to the {TAX_BRACKET} marginal tax rate",
+        f"places them in the {TAX_BRACKET} federal bracket",
+        f"qualifies for the {TAX_BRACKET} tax bracket"
+    ]
+    
+    summary_closings = [
+        "All calculations comply with current IRS regulations and take into account applicable deductions and credits.",
+        "The assessment follows current IRS guidelines and incorporates relevant deductions and available credits.",
+        "This analysis adheres to IRS standards and includes all applicable deductions and credit considerations.",
+        "The calculation aligns with IRS requirements and reflects appropriate deductions and credits."
+    ]
+    
+    payment_intros = [
+        f"A payment of {PAYMENT_AMOUNT} is due by {PAYMENT_DATE}.",
+        f"The required payment of {PAYMENT_AMOUNT} must be submitted by {PAYMENT_DATE}.",
+        f"A total of {PAYMENT_AMOUNT} is owed, with a deadline of {PAYMENT_DATE}.",
+        f"Payment in the amount of {PAYMENT_AMOUNT} should be remitted by {PAYMENT_DATE}."
+    ]
+    
+    payment_penalty_phrases = [
+        f"Failure to remit payment by this date may result in a late filing penalty of approximately {PENALTY_AMOUNT}.",
+        f"Missing this deadline could incur a penalty of around {PENALTY_AMOUNT}.",
+        f"Late payment may trigger penalties totaling approximately {PENALTY_AMOUNT}.",
+        f"Non-compliance with this deadline may lead to a {PENALTY_AMOUNT} penalty."
+    ]
+    
+    payment_credit_phrases = [
+        f"Additionally, the taxpayer may be eligible for the {CREDIT_TYPE}, which could reduce the overall tax burden.",
+        f"The taxpayer qualifies for the {CREDIT_TYPE}, potentially lowering the total liability.",
+        f"Eligibility for the {CREDIT_TYPE} has been confirmed, which may decrease the final amount owed.",
+        f"The {CREDIT_TYPE} is applicable in this case and may reduce the net tax obligation."
+    ]
+    
+    payment_deduction_phrases = [
+        f"The {DEDUCTION_TYPE} has been factored into the final calculation.",
+        f"The calculation includes the {DEDUCTION_TYPE}.",
+        f"The {DEDUCTION_TYPE} is reflected in the total assessment.",
+        f"The final amount accounts for the {DEDUCTION_TYPE}."
+    ]
+    
+    additional_recommendations = [
+        "Consider consulting with a tax professional for detailed planning.",
+        "It may be beneficial to work with a qualified tax advisor for comprehensive planning.",
+        "Professional tax consultation is recommended for optimal planning strategies.",
+        "Engaging a tax professional could provide valuable planning insights."
+    ]
+    
+    additional_next_steps = [
+        "it is advised to review quarterly estimated payments to avoid underpayment penalties",
+        "reviewing estimated quarterly payments is recommended to prevent underpayment issues",
+        "ensure quarterly estimated payments are assessed to avoid potential penalties",
+        "quarterly payment estimates should be examined to maintain compliance"
+    ]
+    
+    additional_closings = [
+        "Documentation should be retained for a minimum of three years in accordance with IRS guidelines. Any discrepancies or questions regarding this analysis should be addressed promptly to ensure compliance and optimize tax positioning.",
+        "All supporting documentation must be kept for at least three years per IRS requirements. Questions or concerns about this assessment should be resolved quickly to maintain compliance and maximize tax efficiency.",
+        "Records should be maintained for no less than three years as required by the IRS. Any uncertainties or issues with this analysis warrant immediate attention to ensure proper compliance and tax optimization.",
+        "The IRS requires documentation retention for a minimum three-year period. Promptly address any questions or discrepancies related to this analysis to preserve compliance and enhance tax outcomes."
+    ]
+    
+    # Generate the structured response with varied presentation
+    summary = (
+        f"Summary\n\n"
+        f"{random.choice(summary_intros)} {TAX_YEAR} {random.choice(summary_indicators)} the {ENTITY_TYPE} "
+        f"with {FILING_STATUS} status and income of {INCOME_RANGE} "
+        f"{random.choice(summary_bracket_phrases)}. Based on the claimed deductions, "
+        f"the calculated tax liability has been assessed. "
+        f"{random.choice(summary_closings)}"
+    )
+    
+    key_payments = (
+        f"Key Payments\n\n"
+        f"{random.choice(payment_intros)} "
+        f"{random.choice(payment_penalty_phrases)} "
+        f"{random.choice(payment_credit_phrases)} "
+        f"{random.choice(payment_deduction_phrases)}"
+    )
+    
+    additional_info = (
+        f"Additional Information\n\n"
+        f"{random.choice(additional_recommendations)} For the upcoming tax period, "
+        f"{random.choice(additional_next_steps)}. "
+        f"{random.choice(additional_closings)}"
+    )
+    
+    return f"{summary}\n\n{key_payments}\n\n{additional_info}"
+
+
+
+
+
 def call_orchestrator(prompt: str, plan: str = None, document=None) -> str:
     """
     Mocked call to orchestrator that simulates realistic LLM variance
