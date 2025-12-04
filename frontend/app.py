@@ -25,11 +25,22 @@ outputs (n) to generate.
 
 with st.sidebar:
     st.header("Input Parameters")
+    authToken = st.text_input("Auth Tokens")
+    n = st.number_input("Number of Outputs (n)", min_value = 2, max_value = 1000, value = 10)
+    userPrompt = st.text_area("User Prompt", height=150, placeholder="Enter the User Prompt here...")
     prompt = st.text_area("System Prompt", height=150, placeholder="Enter the System Prompt here...")
     #not MVP #plan = st.text_area("Plan", height=150, placeholder="Enter Plan Name here...")
-    n = st.number_input("Number of Outputs (n)", min_value = 2, max_value = 1000, value = 10)
-    #not MVP #uploaded_doc = st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
-    submit = st.button("Run Analysis")
+    document =  st.file_uploader("Optional Docuement", type=["txt", "pdf", "docx"])
+    overlayTokenList = st.text_input("Overlay Token List")
+    overlayTokenString = st.text_input("Overlay Token String")
+
+    if st.button("Add Additional Submit Settings"):
+        st.session_state["additional_settings_count"]+=1
+    
+    content = {s}
+    for i in range (st.session_state["additional_settings_count"]):
+        chunk_value = st.text_area(f"Additional Submit Setting {i+1}", key=f"chunk_{i}")
+        content[f"chunk_{i+1}"] = chunk_value
 
 if submit:
     if not prompt:
